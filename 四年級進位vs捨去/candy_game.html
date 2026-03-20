@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>安親班專屬：概數競速大挑戰</title>
+    <style>
+        body { font-family: 'Segoe UI', '微軟正黑體', sans-serif; background-color: #f7f9fc; color: #333; margin: 0; padding: 10px; text-align: center; }
+        .container { background-color: #ffffff; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); width: 100%; max-width: 600px; margin: 0 auto; padding: 15px; box-sizing: border-box; border: 4px solid #fbc02d; }
+        
+        #logo-img { width: 60%; max-width: 200px; height: auto; margin-bottom: 10px; }
+        #user-display-name { display: none; background: #e3f2fd; color: #1565c0; padding: 8px 15px; border-radius: 20px; font-weight: bold; margin-bottom: 15px; font-size: 1.2em; border: 2px solid #90caf9; }
+
+        /* 首頁與英雄榜 */
+        .login-box { background: #fffde7; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 2px dashed #fbc02d; }
+        .login-box input { font-size: 1.2em; padding: 10px; text-align: center; border-radius: 8px; border: 2px solid #fff9c4; width: 80%; max-width: 250px; margin-bottom: 15px; }
+        .hall-of-fame { background: #f1f8e9; padding: 15px; border-radius: 12px; border: 2px solid #81c784; }
+        .hall-of-fame h2 { color: #2e7d32; margin-top: 0; font-size: 1.3em; }
+        .student-list { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 15px; width: 100%; }
+        .student-badge { background: #fff; border: 2px solid #4caf50; color: #2e7d32; padding: 8px 15px; border-radius: 10px; font-weight: bold; font-size: 1.1em; width: 90%; max-width: 300px; display: flex; justify-content: space-between; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .rank-1 { background: #ffd700; border-color: #ff8c00; color: #b85e00; }
+        .rank-2 { background: #e0e0e0; border-color: #9e9e9e; color: #424242; }
+        .rank-3 { background: #ffcc80; border-color: #ef6c00; color: #e65100; }
+        
+        /* 遊戲區與視覺化 */
+        .level-title { background-color: #fffde7; padding: 10px; border-radius: 8px; color: #f57f17; font-weight: bold; font-size: 1.2em; margin-bottom: 15px; border-bottom: 3px solid #ffe082; }
+        .problem { font-size: 1.1em; line-height: 1.5; margin-bottom: 15px; background-color: #fafafa; padding: 15px; border-radius: 8px; border: 1px solid #ddd; text-align: left; }
+        .keyword { color: #d32f2f; font-weight: bold; background-color: #ffcdd2; padding: 2px 4px; border-radius: 4px; }
+        .visual-area { background-color: #f5f5f5; border-radius: 8px; padding: 15px 10px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .item-group { padding: 15px 10px 10px 10px; border-radius: 8px; display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; position: relative; border: 2px dashed #b0bec5; background: #fff; }
+        .group-title { position: absolute; top: -12px; left: 10px; background: white; padding: 2px 8px; font-size: 0.9em; font-weight: bold; border-radius: 4px; border: 1px solid #b0bec5; color: #546e7a; }
+        
+        /* 圖形物件 - 錢幣 */
+        .m-1000 { width: 55px; height: 25px; background: #64b5f6; color: white; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 11px; border: 1px solid #1e88e5; }
+        .m-100 { width: 45px; height: 22px; background: #e57373; color: white; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; border: 1px solid #e53935; }
+        .m-10 { width: 20px; height: 20px; background: #ffd54f; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 9px; border: 1px solid #ffb300; }
+        .m-1 { width: 16px; height: 16px; background: #e0e0e0; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 8px; border: 1px solid #9e9e9e; }
+        
+        /* 圖形物件 - 通用大框框 */
+        .generic-box { background: #e8f5e9; border: 2px solid #4caf50; border-radius: 8px; padding: 10px; font-size: 1.1em; font-weight: bold; color: #2e7d32; display: inline-block; margin: 5px; }
+        .generic-rem { background: #fff3e0; border: 2px dashed #ff9800; border-radius: 8px; padding: 10px; font-size: 1.1em; font-weight: bold; color: #e65100; display: inline-block; margin: 5px; }
+
+        .answer-area { text-align: left; background-color: #fff9c4; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 2px dashed #fbc02d; font-size: 1.1em; }
+        .radio-group label { display: block; padding: 12px; background: #fff; margin-bottom: 8px; border-radius: 8px; border: 1px solid #ccc; font-weight: bold; }
+        .radio-group input[type="radio"] { transform: scale(1.3); margin-right: 10px; }
+        .input-row { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; background: #fff; padding: 10px; border-radius: 8px; }
+        input[type="number"] { font-size: 1.2em; width: 70px; text-align: center; padding: 8px; border: 2px solid #b0bec5; border-radius: 8px; font-weight: bold; color: #1565c0; }
+        button { font-size: 1.2em; padding: 15px; background-color: #ff9800; color: white; border: none; border-radius: 10px; cursor: pointer; width: 100%; box-shadow: 0 4px #f57c00; font-weight: bold; letter-spacing: 2px; }
+        button:active { transform: translateY(2px); box-shadow: 0 2px #f57c00; }
+        
+        #feedback { margin-top: 15px; font-size: 1.1em; font-weight: bold; padding: 12px; border-radius: 8px; display: none; line-height: 1.4; }
+        .correct { color: #2e7d32; background-color: #c8e6c9; border: 2px solid #81c784; display: block !important; }
+        .wrong { color: #c62828; background-color: #ffcdd2; border: 2px solid #e57373; display: block !important; }
+        .hidden { display: none !important; }
+        .clear-btn { background: #e0e0e0; color: #555; font-size: 1em; padding: 10px; box-shadow: none; margin-top: 10px; width: auto; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen">
+        <img src="logo.png" alt="GAUSS Logo" id="logo-img" onerror="this.style.display='none'">
+        <div class="login-box">
+            <h2 style="font-size: 1.3em; margin-top:0; color:#f57f17">概數競速大挑戰 (共8關)</h2>
+            <input type="text" id="player-name" placeholder="小朋友，請輸入名字" autocomplete="off">
+            <button onclick="startGame()">開始計時闖關！</button>
+        </div>
+
+        <div class="hall-of-fame">
+            <h2>⏱️ 競速英雄榜 ⏱️</h2>
+            <div id="student-list" class="student-list"></div>
+            <button class="clear-btn" onclick="clearData()">🗑️ 清空名單 (老師專用)</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="hidden">
+        <div id="user-display-name"></div>
+        <div id="l-title" class="level-title">關卡標題</div>
+        <div id="visual-area" class="visual-area"></div>
+        <p class="problem" id="l-problem">題目內容</p>
+        
+        <div class="answer-area">
+            <p style="margin-top:0; color:#555; font-weight:bold; font-size:0.95em;">1. 判斷要用哪一種方法取概數？</p>
+            <div class="radio-group">
+                <label><input type="radio" name="method" value="down"> 無條件捨去法</label>
+                <label><input type="radio" name="method" value="up"> 無條件進入法</label>
+            </div>
+            
+            <p style="margin:15px 0 5px 0; color:#555; font-weight:bold; font-size:0.95em;">2. 填入計算答案：</p>
+            <div class="input-row">答：<span id="u1">換</span> <input type="number" id="ans-bills" inputmode="numeric"> <span id="u2">張</span></div>
+            <div class="input-row"><span id="u3">共</span> <input type="number" id="ans-total" inputmode="numeric"> <span id="u4">元</span></div>
+        </div>
+
+        <button id="submit-btn" onclick="checkAnswer()">確認送出！</button>
+        <div id="feedback"></div>
+    </div>
+
+    <div id="finish-screen" class="hidden">
+        <h1 style="color: #ff9800; font-size: 2em; margin: 20px 0;">🎉 恭喜通關！🎉</h1>
+        <h2 id="finish-name" style="color: #1565c0; font-size: 1.5em;"></h2>
+        <div style="background: #e8f5e9; border: 2px solid #4caf50; padding: 15px; border-radius: 10px; margin: 15px 0;">
+            <p style="font-size: 1.2em; font-weight: bold; color: #2e7d32; margin: 0;">你的挑戰時間：<br><span id="finish-time" style="font-size: 2em; color: #d32f2f;"></span> 秒</p>
+        </div>
+        <button onclick="returnToStart()" style="margin-top: 10px;">回首頁看英雄榜</button>
+    </div>
+</div>
+
+<script>
+    let currentPlayer = "";
+    let currentLevel = 1;
+    let currentData = {};
+    let passedStudents = [];
+    let startTime = 0;
+
+    // --- 音效合成器 (免圖檔/免外部連結) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+    function playSound(type) {
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else {
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // --- 圖形產生器 ---
+    function genMoney(amt) {
+        let html = '';
+        for(let i=0; i<Math.floor(amt/1000); i++) html += '<div class="m-1000">1000</div>';
+        for(let i=0; i<Math.floor((amt%1000)/100); i++) html += '<div class="m-100">100</div>';
+        for(let i=0; i<Math.floor((amt%100)/10); i++) html += '<div class="m-10">10</div>';
+        for(let i=0; i<amt%10; i++) html += '<div class="m-1">1</div>';
+        return html || '<span style="color:#999;">無</span>';
+    }
+    
+    function genGeneric(boxes, rem, boxEmoji, remEmoji, boxSize) {
+        let html = '';
+        if (boxes > 0) html += `<div class="generic-box">${boxEmoji} ${boxSize} × ${boxes}</div>`;
+        if (rem > 0) html += `<div class="generic-rem">${remEmoji} 剩餘 ${rem}</div>`;
+        return html;
+    }
+
+    // --- 8大關卡題庫 ---
+    const levelsInfo = [
+        {
+            title: '銀行換鈔票 🏦 (捨去法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 5000) + 1111; 
+                return {
+                    text: `帶了 <strong>${total}</strong> 元零錢去銀行，<span class="keyword">最多可以換幾張千元鈔票</span>？是換了多少元？`,
+                    ansM: 'down', ansB: Math.floor(total/1000), ansT: Math.floor(total/1000)*1000,
+                    u1: '換', u2: '張', u3: '換了', u4: '元',
+                    visual: `
+                        <div class="item-group" style="border-color:#4caf50;"><div class="group-title" style="color:#2e7d32">可換大鈔部分</div>${genMoney(Math.floor(total/1000)*1000)}</div>
+                        <div class="item-group" style="border-color:#ff9800; background:#fff3e0;"><div class="group-title" style="color:#e65100">剩下的零錢(銀行退回)</div>${genMoney(total%1000)}</div>`
+                };
+            }
+        },
+        {
+            title: '買電視付錢 📺 (進入法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 5000) + 1111;
+                return {
+                    text: `電視賣 <strong>${total}</strong> 元，只帶千元鈔票，<span class="keyword">至少要付幾張才夠</span>？是付了多少元？`,
+                    ansM: 'up', ansB: Math.ceil(total/1000), ansT: Math.ceil(total/1000)*1000,
+                    u1: '要付', u2: '張', u3: '付了', u4: '元',
+                    visual: `<div class="item-group" style="border-color:#1e88e5; background:#e3f2fd;"><div class="group-title" style="color:#0d47a1">電視定價需要的錢</div>${genMoney(total)}</div>`
+                };
+            }
+        },
+        {
+            title: '糖果品管員 🍬 (捨去法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 400) + 111;
+                return {
+                    text: `有 <strong>${total}</strong> 顆糖果，每 <strong>100</strong> 顆裝一盒，<span class="keyword">最多可裝滿幾盒</span>？總共裝了幾顆？`,
+                    ansM: 'down', ansB: Math.floor(total/100), ansT: Math.floor(total/100)*100,
+                    u1: '裝滿', u2: '盒', u3: '共裝', u4: '顆',
+                    visual: `
+                        <div class="item-group" style="border-color:#4caf50;"><div class="group-title" style="color:#2e7d32">裝滿的盒子</div>${genGeneric(Math.floor(total/100), 0, '📦', '', 100)}</div>
+                        <div class="item-group" style="border-color:#ff9800; background:#fff3e0;"><div class="group-title" style="color:#e65100">剩下的糖果(不能賣)</div>${genGeneric(0, total%100, '', '🍬', 100)}</div>`
+                };
+            }
+        },
+        {
+            title: '搬書裝箱子 📚 (進入法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 400) + 111;
+                return {
+                    text: `圖書館有 <strong>${total}</strong> 本書要搬走，每 <strong>100</strong> 本裝一箱，<span class="keyword">至少要幾個紙箱才能全部裝完</span>？這些箱子最多可裝幾本？`,
+                    ansM: 'up', ansB: Math.ceil(total/100), ansT: Math.ceil(total/100)*100,
+                    u1: '需要', u2: '箱', u3: '最多裝', u4: '本',
+                    visual: `<div class="item-group" style="border-color:#1e88e5; background:#e3f2fd;"><div class="group-title" style="color:#0d47a1">總共要搬的書</div>${genGeneric(Math.floor(total/100), total%100, '📦', '📖', 100)}</div>`
+                };
+            }
+        },
+        {
+            title: '製作蝴蝶結 🎀 (捨去法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 600) + 211;
+                return {
+                    text: `美勞課有一條長 <strong>${total}</strong> 公分的緞帶，每 <strong>100</strong> 公分可以做成一個蝴蝶結。<span class="keyword">最多可以做幾個完整的蝴蝶結</span>？共用掉幾公分？`,
+                    ansM: 'down', ansB: Math.floor(total/100), ansT: Math.floor(total/100)*100,
+                    u1: '做滿', u2: '個', u3: '用掉', u4: '公分',
+                    visual: `
+                        <div class="item-group" style="border-color:#4caf50;"><div class="group-title" style="color:#2e7d32">完整的蝴蝶結</div>${genGeneric(Math.floor(total/100), 0, '🎀', '', 100)}</div>
+                        <div class="item-group" style="border-color:#ff9800; background:#fff3e0;"><div class="group-title" style="color:#e65100">剩下的碎布(不夠做)</div>${genGeneric(0, total%100, '', '✂️', 100)}</div>`
+                };
+            }
+        },
+        {
+            title: '洗照片買相簿 🖼️ (進入法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 500) + 111;
+                return {
+                    text: `戶外教學拍了 <strong>${total}</strong> 張照片，每本相簿可以放 <strong>100</strong> 張。<span class="keyword">至少要買幾本相簿</span>才夠把照片全部放進去？這些相簿最多可放幾張？`,
+                    ansM: 'up', ansB: Math.ceil(total/100), ansT: Math.ceil(total/100)*100,
+                    u1: '至少買', u2: '本', u3: '最多放', u4: '張',
+                    visual: `<div class="item-group" style="border-color:#1e88e5; background:#e3f2fd;"><div class="group-title" style="color:#0d47a1">要收藏的所有照片</div>${genGeneric(Math.floor(total/100), total%100, '📘', '📸', 100)}</div>`
+                };
+            }
+        },
+        {
+            title: '果園大豐收 🍎 (捨去法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 6000) + 1500;
+                return {
+                    text: `果園採收了 <strong>${total}</strong> 顆蘋果，每 <strong>1000</strong> 顆裝滿一輛小貨車準備出貨。<span class="keyword">最多可以裝滿幾輛貨車</span>？共裝了幾顆出貨？`,
+                    ansM: 'down', ansB: Math.floor(total/1000), ansT: Math.floor(total/1000)*1000,
+                    u1: '裝滿', u2: '輛', u3: '出貨', u4: '顆',
+                    visual: `
+                        <div class="item-group" style="border-color:#4caf50;"><div class="group-title" style="color:#2e7d32">可出貨的滿載貨車</div>${genGeneric(Math.floor(total/1000), 0, '🚚', '', 1000)}</div>
+                        <div class="item-group" style="border-color:#ff9800; background:#fff3e0;"><div class="group-title" style="color:#e65100">剩下的蘋果(留在果園)</div>${genGeneric(0, total%1000, '', '🍎', 1000)}</div>`
+                };
+            }
+        },
+        {
+            title: '戶外教學搭纜車 🚠 (進入法)',
+            gen: () => {
+                const total = Math.floor(Math.random() * 300) + 111;
+                return {
+                    text: `全校共有 <strong>${total}</strong> 個師生要搭乘高空纜車，每臺纜車規定最多坐 <strong>10</strong> 人。<span class="keyword">至少需要幾臺纜車</span>才能讓大家都搭到？最多可載幾人？`,
+                    ansM: 'up', ansB: Math.ceil(total/10), ansT: Math.ceil(total/10)*10,
+                    u1: '需要', u2: '臺', u3: '可載', u4: '人',
+                    visual: `<div class="item-group" style="border-color:#1e88e5; background:#e3f2fd;"><div class="group-title" style="color:#0d47a1">排隊等候的師生</div>${genGeneric(Math.floor(total/10), total%10, '🚠', '🚶', 10)}</div>`
+                };
+            }
+        }
+    ];
+
+    function init() {
+        const stored = localStorage.getItem('gaoshiMathScores');
+        if (stored) passedStudents = JSON.parse(stored);
+        renderHall();
+    }
+
+    function renderHall() {
+        const listDiv = document.getElementById('student-list');
+        if (passedStudents.length === 0) {
+            listDiv.innerHTML = '<span style="color:#757575; font-size:0.9em;">目前還沒有人過關喔！快來挑戰！</span>';
+            return;
+        }
+        
+        // 依照時間排序 (由小到大)
+        passedStudents.sort((a, b) => a.time - b.time);
+        
+        let html = '';
+        passedStudents.forEach((player, index) => {
+            let rankClass = '';
+            let icon = '⭐';
+            if (index === 0) { rankClass = 'rank-1'; icon = '🥇'; }
+            else if (index === 1) { rankClass = 'rank-2'; icon = '🥈'; }
+            else if (index === 2) { rankClass = 'rank-3'; icon = '🥉'; }
+            
+            html += `<div class="student-badge ${rankClass}"><span>${icon} ${player.name}</span> <span>${player.time} 秒</span></div>`;
+        });
+        listDiv.innerHTML = html;
+    }
+
+    function startGame() {
+        const nameInput = document.getElementById('player-name').value.trim();
+        if (!nameInput) return alert("小朋友，請先輸入你的名字喔！");
+        currentPlayer = nameInput;
+        currentLevel = 1;
+        startTime = Date.now(); // 開始計時
+        
+        // 初始化音效 (解決瀏覽器限制)
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        document.getElementById('start-screen').classList.add('hidden');
+        const displayNameDiv = document.getElementById('user-display-name');
+        displayNameDiv.innerText = "🔥 " + currentPlayer + " 的挑戰！";
+        displayNameDiv.style.display = 'inline-block'; 
+        
+        document.getElementById('game-screen').classList.remove('hidden');
+        loadLevel();
+    }
+
+    function loadLevel() {
+        currentData = levelsInfo[currentLevel - 1].gen();
+        document.getElementById('l-title').innerText = `第 ${currentLevel}/8 關：${currentData.title}`;
+        document.getElementById('visual-area').innerHTML = currentData.visual;
+        document.getElementById('l-problem').innerHTML = currentData.text;
+        document.getElementById('u1').innerText = currentData.u1;
+        document.getElementById('u2').innerText = currentData.u2;
+        document.getElementById('u3').innerText = currentData.u3;
+        document.getElementById('u4').innerText = currentData.u4;
+
+        document.getElementsByName('method').forEach(r => r.checked = false);
+        document.getElementById('ans-bills').value = "";
+        document.getElementById('ans-total').value = "";
+        
+        const fb = document.getElementById('feedback');
+        fb.className = ""; fb.innerHTML = ""; fb.style.display = "none";
+        document.getElementById('submit-btn').disabled = false;
+        
+        window.scrollTo(0, 0);
+    }
+
+    function checkAnswer() {
+        const fb = document.getElementById('feedback');
+        let method = "";
+        document.getElementsByName('method').forEach(r => { if(r.checked) method = r.value; });
+        const b = parseInt(document.getElementById('ans-bills').value);
+        const t = parseInt(document.getElementById('ans-total').value);
+
+        if (!method || isNaN(b) || isNaN(t)) {
+            playSound('wrong');
+            fb.innerHTML = "❌ 哎呀！格子沒填完，或忘記打勾了！";
+            fb.className = "wrong";
+            return;
+        }
+
+        if (method === currentData.ansM && b === currentData.ansB && t === currentData.ansT) {
+            playSound('correct');
+            fb.innerHTML = "✅ 完全正確！準備下一關！";
+            fb.className = "correct";
+            document.getElementById('submit-btn').disabled = true;
+            setTimeout(() => {
+                currentLevel++;
+                currentLevel > levelsInfo.length ? gameComplete() : loadLevel();
+            }, 1200);
+        } else {
+            playSound('wrong');
+            let msg = "❌ 答錯了喔！<br>";
+            if (method !== currentData.ansM) {
+                msg += currentData.ansM === 'down' ? "💡 看上面的圖，剩下的不夠湊成完整單位，要「無條件捨去」。" : "💡 看上面的圖，只要有剩下，就必須多拿一個單位才夠裝，要「無條件進入」。";
+            } else {
+                msg += "💡 方法選對了！但數字乘除算錯囉，再算一次！";
+            }
+            fb.innerHTML = msg;
+            fb.className = "wrong";
+        }
+    }
+
+    function gameComplete() {
+        const endTime = Date.now();
+        const timeSpent = Math.floor((endTime - startTime) / 1000); // 算出經過的秒數
+        
+        document.getElementById('game-screen').classList.add('hidden');
+        document.getElementById('user-display-name').style.display = 'none';
+        document.getElementById('finish-screen').classList.remove('hidden');
+        document.getElementById('finish-name').innerText = currentPlayer + "，太神啦！";
+        document.getElementById('finish-time').innerText = timeSpent;
+        
+        // 更新排行榜紀錄
+        let existingPlayerIndex = passedStudents.findIndex(p => p.name === currentPlayer);
+        if (existingPlayerIndex !== -1) {
+            // 如果原本就在榜上，只更新「更快」的紀錄
+            if (timeSpent < passedStudents[existingPlayerIndex].time) {
+                passedStudents[existingPlayerIndex].time = timeSpent;
+            }
+        } else {
+            passedStudents.push({ name: currentPlayer, time: timeSpent });
+        }
+        localStorage.setItem('gaoshiMathScores', JSON.stringify(passedStudents));
+    }
+
+    function returnToStart() {
+        document.getElementById('player-name').value = "";
+        document.getElementById('finish-screen').classList.add('hidden');
+        document.getElementById('start-screen').classList.remove('hidden');
+        renderHall();
+    }
+
+    function clearData() {
+        let pwd = prompt("⚠️ 老師專用功能\n請輸入清空名單密碼：");
+        if (pwd === "b1b1") {
+            passedStudents = [];
+            localStorage.removeItem('gaoshiMathScores');
+            renderHall();
+            alert("✅ 闖關名單已清空！");
+        } else if (pwd !== null) {
+            alert("❌ 密碼錯誤，無法清空。");
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
+
